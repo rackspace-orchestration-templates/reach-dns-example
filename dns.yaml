@@ -63,7 +63,7 @@ parameters:
   cbs_mount_point:
     type: string
     label: The location where the volume is exposed on the instance
-    default: /dev/sda
+    default: /dev/xvdb
 
 resources:
 
