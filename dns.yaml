@@ -1,7 +1,8 @@
 heat_template_version: 2013-05-23
 
 description: |
-  This is a Heat template to deploy a server with LAMP
+  This is a Heat template to deploy a server and leverage various providers
+  including DNS, AutoScale, and Block Storage
 
 parameter_groups:
 - label: Server Settings
@@ -59,6 +60,11 @@ parameters:
         Must be a valid Rackspace Cloud Server flavor for the region you have
         selected to deploy into.
 
+  cbs_mount_point:
+    type: string
+    label: The location where the volume is exposed on the instance
+    default: /dev/sda
+
 resources:
 
   ssh_key:
@@ -78,6 +84,20 @@ resources:
       metadata:
         rax-heat: { get_param: "OS::stack_id" }
 
+  cbs_volume:
+    type: OS::Cinder::Volume
+    properties:
+      name: cbs_vol
+      size: 100
+
+  cbs_volume_attach:
+    type: OS::Cinder::VolumeAttachment
+    depends_on: linux_server
+    properties:
+      instance_uuid: { get_resource: linux_server }
+      volume_id: { get_resource: cbs_volume }
+      mountpoint: { get_param: cbs_mount_point }
+
   dns_record:
     type: "Rackspace::Cloud::DNS"
     depends_on: linux_server
@@ -94,3 +114,7 @@ outputs:
   server_ip:
     description: Server IP
     value: { get_attr: [linux_server, accessIPv4] }
+
+  cbs_volume:
+    value: { get_resource: cbs_volume }
+    description: CBS Volume
