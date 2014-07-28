@@ -1,0 +1,96 @@
+heat_template_version: 2013-05-23
+
+description: |
+  This is a Heat template to deploy a server with LAMP
+
+parameter_groups:
+- label: Server Settings
+  parameters:
+  - server_hostname
+  - image
+  - flavor
+
+parameters:
+  server_hostname:
+    label: Server Name
+    description: Hostname to use for setting the server name.
+    type: string
+    default: web
+    constraints:
+    - length:
+        min: 1
+        max: 64
+    - allowed_pattern: "^[a-zA-Z][a-zA-Z0-9-]*$"
+      description: |
+        Must begin with a letter and contain only alphanumeric characters.
+
+  image:
+    label: Operating System
+    description: |
+      Required: Server image used for all servers that are created as a part of
+      this deployment.
+    type: string
+    default: CentOS 6.5 (PVHVM)
+    constraints:
+    - allowed_values:
+      - CentOS 6.5 (PVHVM)
+      - Red Hat Enterprise Linux 6.5 (PVHVM)
+      - Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)
+      - Ubuntu 12.04 LTS (Precise Pangolin)
+      - Debian 7 (Wheezy) (PVHVM)
+      description: Must be a supported operating system.
+
+  flavor:
+    label: Server Size
+    description: |
+      Required: Rackspace Cloud Server flavor to use. The size is based on the
+      amount of RAM for the provisioned server.
+    type: string
+    default: 1 GB Performance
+    constraints:
+    - allowed_values:
+      - 1 GB Performance
+      - 2 GB Performance
+      - 4 GB Performance
+      - 8 GB Performance
+      - 15 GB Performance
+      - 30 GB Performance
+      description: |
+        Must be a valid Rackspace Cloud Server flavor for the region you have
+        selected to deploy into.
+
+resources:
+
+  ssh_key:
+    type: "OS::Nova::KeyPair"
+    properties:
+      name: { get_param: "OS::stack_id" }
+      save_private_key: true
+
+  linux_server:
+    type: "Rackspace::Cloud::Server"
+    properties:
+      name: { get_param: server_hostname }
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_resource: ssh_key }
+      config_drive: "true"
+      metadata:
+        rax-heat: { get_param: "OS::stack_id" }
+
+  dns_record:
+    type: "Rackspace::Cloud::DNS"
+    depends_on: linux_server
+    properties:
+      emailAddress: "admin@rackspace.com"
+      name: interwebz-testing.com
+      records: [{"name": "test.interwebz-testing.com", "data": { get_attr: [linux_server, accessIPv4] }, "type": "A" }]
+
+outputs:
+  private_key:
+    description: SSH Private Key
+    value: { get_attr: [ssh_key, private_key] }
+
+  server_ip:
+    description: Server IP
+    value: { get_attr: [linux_server, accessIPv4] }
