@@ -106,6 +106,56 @@ resources:
       name: interwebz-testing.com
       records: [{"name": "test.interwebz-testing.com", "data": { get_attr: [linux_server, accessIPv4] }, "type": "A" }]
 
+  auto_scale_servers:
+    type: Rackspace::AutoScale::Group
+    properties:
+      groupConfiguration:
+        name: kitchen_sink_api_asgroup
+        maxEntities: 4
+        minEntities: 2
+        cooldown: 120
+      launchConfiguration:
+        type: launch_server
+        args:
+          server:
+            name: auto_scale_example
+            flavorRef: performance1-1
+            imageRef: 255df5fb-e3d4-45a3-9a07-c976debf7c14
+            key_name: { get_resource: ssh_key }
+            networks:
+            - uuid: "00000000-0000-0000-0000-000000000000"
+            - uuid: "11111111-1111-1111-1111-111111111111"
+
+  scale_up_policy:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: { get_resource: auto_scale_servers }
+      name: Scale up api servers
+      change: 1
+      cooldown: 600
+      type: webhook
+
+  scale_up_webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      name: triggerApiScaleUp
+      policy: { get_resource: scale_up_policy }
+
+  scale_down_policy:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: { get_resource: auto_scale_servers }
+      name: Scale down api servers
+      change: -1
+      cooldown: 600
+      type: webhook
+
+  scale_down_webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      name: triggerApiScaleUp
+      policy: { get_resource: scale_down_policy }
+
 outputs:
   private_key:
     description: SSH Private Key
