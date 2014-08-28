@@ -70,6 +70,12 @@ parameters:
     label: Like cake?
     default: false
 
+  three_stooges_list:
+    type: comma_delimited_list
+    label: Three Stooges
+    description: One of the most legendary comedy teams of all time.
+    default: Larry, Moe, Curly
+
 resources:
 
   ssh_key:
