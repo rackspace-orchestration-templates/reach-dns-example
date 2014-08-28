@@ -76,6 +76,11 @@ parameters:
     description: One of the most legendary comedy teams of all time.
     default: Larry, Moe, Curly
 
+  json_string:
+    type: json
+    label: JSON input
+    default: { 'what_do_we_want': 'Cake', 'when_do_we_want_it': -1 }
+
 resources:
 
   ssh_key:
