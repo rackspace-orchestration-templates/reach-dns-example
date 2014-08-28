@@ -65,6 +65,11 @@ parameters:
     label: The location where the volume is exposed on the instance
     default: /dev/xvdb
 
+  likes_cake:
+    type: boolean
+    label: Like cake?
+    default: false
+
 resources:
 
   ssh_key:
