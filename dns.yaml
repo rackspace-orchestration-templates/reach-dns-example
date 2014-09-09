@@ -184,3 +184,7 @@ outputs:
   cbs_volume:
     value: { get_resource: cbs_volume }
     description: CBS Volume
+
+  json_example:
+    value: { get_param: json_string }
+    description: JSON example
